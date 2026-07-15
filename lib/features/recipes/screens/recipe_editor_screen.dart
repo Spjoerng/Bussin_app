@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/images/recipe_image_service.dart';
-import '../../../core/theme/app_spacing.dart';
 import '../../../data/repositories/recipe_repository.dart';
 import '../controllers/recipe_controller.dart';
 import '../models/recipe_models.dart';
@@ -209,6 +210,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 48),
           children: [
             Text('Photo', style: Theme.of(context).textTheme.titleLarge),
@@ -309,6 +311,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
               ),
             _heading(
               'Ingredients',
+              _ingredients.length,
               () => setState(() {
                 _ingredients.add(_IngredientFields());
                 _dirty = true;
@@ -326,6 +329,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
             ),
             _heading(
               'Instructions',
+              _instructions.length,
               () => setState(() {
                 _instructions.add(_InstructionFields());
                 _dirty = true;
@@ -523,70 +527,104 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     }
   }
 
-  Widget _heading(String title, VoidCallback add) => Padding(
-    padding: const EdgeInsets.only(top: 20, bottom: 8),
+  Widget _heading(String title, int count, VoidCallback add) => Padding(
+    padding: const EdgeInsets.only(top: AppSpacing.xLarge, bottom: 8),
     child: Row(
       children: [
-        Expanded(
-          child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(width: AppSpacing.small),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.placeholder,
+            borderRadius: BorderRadius.circular(AppRadii.pill),
+          ),
+          child: Text('$count', style: Theme.of(context).textTheme.labelMedium),
         ),
-        IconButton(onPressed: add, icon: const Icon(Icons.add_circle_outline)),
+        const Spacer(),
+        TextButton.icon(
+          onPressed: add,
+          icon: const Icon(Icons.add, size: 20),
+          label: const Text('Add'),
+        ),
       ],
     ),
   );
+
+  InputDecoration _compactDecoration(String label) => InputDecoration(
+    labelText: label,
+    isDense: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+  );
+
   Widget _ingredientRow(int index) {
     final f = _ingredients[index];
     return Card(
       key: ObjectKey(f),
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.small),
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
         child: Column(
           children: [
             Row(
               children: [
-                const Icon(Icons.drag_handle),
+                const Icon(Icons.drag_handle, color: AppColors.mutedText),
+                SizedBox(
+                  width: 28,
+                  child: Text(
+                    '${index + 1}',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
                 Expanded(
                   child: TextFormField(
                     controller: f.name,
                     onChanged: (_) => _markDirty(),
-                    decoration: const InputDecoration(labelText: 'Ingredient'),
+                    decoration: _compactDecoration('Ingredient'),
                   ),
                 ),
                 IconButton(
+                  tooltip: 'Remove ingredient',
+                  visualDensity: VisualDensity.compact,
                   onPressed: () => setState(() {
                     _ingredients.removeAt(index).dispose();
                     _dirty = true;
                   }),
-                  icon: const Icon(Icons.remove_circle_outline),
+                  icon: const Icon(Icons.close),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.small),
             Row(
               children: [
                 Expanded(
+                  flex: 2,
                   child: TextField(
                     controller: f.quantity,
                     onChanged: (_) => _markDirty(),
-                    decoration: const InputDecoration(labelText: 'Quantity'),
+                    decoration: _compactDecoration('Quantity'),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.small),
                 Expanded(
+                  flex: 2,
                   child: TextField(
                     controller: f.unit,
                     onChanged: (_) => _markDirty(),
-                    decoration: const InputDecoration(labelText: 'Unit'),
+                    decoration: _compactDecoration('Unit'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.small),
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: f.notes,
+                    onChanged: (_) => _markDirty(),
+                    decoration: _compactDecoration('Notes'),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: f.notes,
-              onChanged: (_) => _markDirty(),
-              decoration: const InputDecoration(labelText: 'Notes'),
             ),
           ],
         ),
@@ -598,34 +636,39 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     final f = _instructions[index];
     return Card(
       key: ObjectKey(f),
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppSpacing.small),
       child: Padding(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.only(top: 18),
-              child: Icon(Icons.drag_handle),
+              padding: EdgeInsets.only(top: 12),
+              child: Icon(Icons.drag_handle, color: AppColors.mutedText),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 18, right: 8),
-              child: Text('${index + 1}.'),
+              padding: const EdgeInsets.only(top: 13, left: 4, right: 8),
+              child: Text(
+                '${index + 1}',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
             ),
             Expanded(
               child: TextField(
                 controller: f.text,
                 maxLines: null,
                 onChanged: (_) => _markDirty(),
-                decoration: const InputDecoration(labelText: 'Step'),
+                decoration: _compactDecoration('Step'),
               ),
             ),
             IconButton(
+              tooltip: 'Remove step',
+              visualDensity: VisualDensity.compact,
               onPressed: () => setState(() {
                 _instructions.removeAt(index).dispose();
                 _dirty = true;
               }),
-              icon: const Icon(Icons.remove_circle_outline),
+              icon: const Icon(Icons.close),
             ),
           ],
         ),
