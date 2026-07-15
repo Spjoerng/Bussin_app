@@ -269,16 +269,24 @@ class _BackupTransferView extends StatelessWidget {
                 Text(
                   '${preview.archive.manifest.recipeCount} recipes • ${preview.archive.manifest.tagCount} tags • ${preview.archive.manifest.imageCount} images',
                 ),
+                const SizedBox(height: AppSpacing.xSmall),
                 Text(
                   'Exported ${preview.archive.manifest.exportedAt.toLocal()}',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const Divider(),
+                const SizedBox(height: AppSpacing.medium),
+                const Divider(height: 1),
+                const SizedBox(height: AppSpacing.medium),
                 Text('${preview.newRecipes} new'),
+                const SizedBox(height: AppSpacing.xSmall),
                 Text('${preview.existingRecipes} matching UUIDs'),
+                const SizedBox(height: AppSpacing.xSmall),
                 Text('${preview.possibleDuplicates} possible title duplicates'),
-                if (preview.invalidImages > 0)
+                if (preview.invalidImages > 0) ...[
+                  const SizedBox(height: AppSpacing.xSmall),
                   Text('${preview.invalidImages} missing images'),
-                const SizedBox(height: 12),
+                ],
+                const SizedBox(height: AppSpacing.large),
                 DropdownButtonFormField<ImportMode>(
                   initialValue: mode,
                   decoration: const InputDecoration(labelText: 'Import mode'),
@@ -295,7 +303,8 @@ class _BackupTransferView extends StatelessWidget {
                       .toList(),
                   onChanged: (v) => setState(() => mode = v!),
                 ),
-                if (mode == ImportMode.merge)
+                if (mode == ImportMode.merge) ...[
+                  const SizedBox(height: AppSpacing.medium),
                   DropdownButtonFormField<ConflictPolicy>(
                     initialValue: policy,
                     decoration: const InputDecoration(
@@ -311,6 +320,8 @@ class _BackupTransferView extends StatelessWidget {
                         .toList(),
                     onChanged: (v) => setState(() => policy = v!),
                   ),
+                ],
+                const SizedBox(height: AppSpacing.small),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Import display preferences'),
@@ -318,12 +329,21 @@ class _BackupTransferView extends StatelessWidget {
                   onChanged: (v) => setState(() => preferences = v ?? false),
                 ),
                 if (mode == ImportMode.replaceCookbook)
-                  const Text(
-                    'Warning: all current recipes will be replaced after a safety backup is created.',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  const Padding(
+                    padding: EdgeInsets.only(top: AppSpacing.small),
+                    child: Text(
+                      'Warning: all current recipes will be replaced after a safety backup is created.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
               ],
             ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(
+            AppSpacing.large,
+            AppSpacing.small,
+            AppSpacing.large,
+            AppSpacing.large,
           ),
           actions: [
             TextButton(

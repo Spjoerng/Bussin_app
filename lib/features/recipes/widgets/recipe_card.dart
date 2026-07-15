@@ -35,7 +35,7 @@ class RecipeCard extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       AspectRatio(
-        aspectRatio: 16 / 10,
+        aspectRatio: 3 / 2,
         child: _photo(
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppRadii.card),

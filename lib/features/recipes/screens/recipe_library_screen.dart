@@ -159,8 +159,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                       onPressed: controller.toggleLayout,
                       icon: Icon(
                         controller.isGrid
-                            ? Icons.view_list_outlined
-                            : Icons.grid_view_outlined,
+                            ? Icons.grid_on_outlined
+                            : Icons.view_list_outlined,
                       ),
                     ),
                   ],
@@ -475,7 +475,7 @@ class _RecipeCollection extends StatelessWidget {
     return LayoutBuilder(
       builder: (_, constraints) {
         final columns =
-            ((constraints.maxWidth + AppSpacing.grid) / (165 + AppSpacing.grid))
+            ((constraints.maxWidth + AppSpacing.grid) / (150 + AppSpacing.grid))
                 .floor()
                 .clamp(1, 4);
         return MasonryGridView.count(
