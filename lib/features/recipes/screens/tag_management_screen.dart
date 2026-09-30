@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/page_content.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -40,7 +41,7 @@ class _TagManagementScreenState extends State<TagManagementScreen> {
               final count = await controller.removeUnusedTags();
               if (!mounted) return;
               await _refreshCounts();
-              if (!mounted) return;
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -58,41 +59,52 @@ class _TagManagementScreenState extends State<TagManagementScreen> {
         icon: const Icon(Icons.add),
         label: const Text('New tag'),
       ),
-      body: controller.availableTags.isEmpty
-          ? const Center(child: Text('No tags yet.'))
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-              itemCount: controller.availableTags.length,
-              separatorBuilder: (_, _) => const Divider(),
-              itemBuilder: (_, index) {
-                final tag = controller.availableTags[index];
-                final count = _counts[tag.id] ?? 0;
-                return ListTile(
-                  leading: const Icon(Icons.sell_outlined),
-                  title: Text(tag.name),
-                  subtitle: Text('$count recipe${count == 1 ? '' : 's'}'),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'rename') {
-                        _editTag(tag);
-                      } else {
-                        _deleteTag(tag, count);
-                      }
-                    },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'rename', child: Text('Rename')),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(color: AppColors.destructive),
+      body: PageContent(
+        maxWidth: 840,
+        child: controller.availableTags.isEmpty
+            ? const Center(child: Text('No tags yet.'))
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                itemCount: controller.availableTags.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (_, index) {
+                  final tag = controller.availableTags[index];
+                  final count = _counts[tag.id] ?? 0;
+                  return Card(
+                    child: ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: AppColors.placeholder,
+                        child: Icon(
+                          Icons.sell_outlined,
+                          color: AppColors.accent,
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                      title: Text(tag.name),
+                      subtitle: Text('$count recipe${count == 1 ? '' : 's'}'),
+                      trailing: PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'rename') {
+                            _editTag(tag);
+                          } else {
+                            _deleteTag(tag, count);
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(value: 'rename', child: Text('Rename')),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(color: AppColors.destructive),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
     );
   }
 
@@ -100,10 +112,8 @@ class _TagManagementScreenState extends State<TagManagementScreen> {
     final controller = context.read<RecipeController>();
     final name = await showDialog<String>(
       context: context,
-      builder: (_) => _TagNameDialog(
-        initialName: tag?.name,
-        isEditing: tag != null,
-      ),
+      builder: (_) =>
+          _TagNameDialog(initialName: tag?.name, isEditing: tag != null),
     );
     if (name == null) return;
     try {

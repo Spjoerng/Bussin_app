@@ -5,6 +5,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../data/images/recipe_image_service.dart';
 import '../../../data/repositories/recipe_repository.dart';
 import 'recipe_image.dart';
+import 'favorite_button.dart';
 
 class RecipeCard extends StatelessWidget {
   const RecipeCard({
@@ -55,7 +56,7 @@ class RecipeCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 104,
+          width: MediaQuery.sizeOf(context).width < 360 ? 76 : 104,
           child: AspectRatio(
             aspectRatio: 1,
             child: _photo(borderRadius: BorderRadius.circular(AppRadii.medium)),
@@ -117,26 +118,7 @@ class RecipeCard extends StatelessWidget {
                     )
                   : const SizedBox(key: ValueKey(false)),
             ),
-            IconButton(
-              tooltip: data.isFavorite
-                  ? 'Remove from favorites'
-                  : 'Favorite recipe',
-              visualDensity: VisualDensity.compact,
-              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-              onPressed: onFavorite,
-              icon: AnimatedSwitcher(
-                duration: AppDurations.quick,
-                transitionBuilder: (child, animation) =>
-                    ScaleTransition(scale: animation, child: child),
-                child: Icon(
-                  data.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  key: ValueKey(data.isFavorite),
-                ),
-              ),
-              color: data.isFavorite
-                  ? AppColors.destructive
-                  : AppColors.mutedText,
-            ),
+            FavoriteButton(isFavorite: data.isFavorite, onPressed: onFavorite),
           ],
         ),
         if (data.description?.trim().isNotEmpty ?? false) ...[
@@ -213,13 +195,21 @@ class _Metadata extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: AppColors.secondary),
+        Icon(
+          icon,
+          size: 15,
+          color: icon == Icons.check_circle_outline
+              ? AppColors.success
+              : AppColors.accent,
+        ),
         const SizedBox(width: AppSpacing.xSmall),
-        Text(
-          label,
-          style: Theme.of(
-            context,
-          ).textTheme.labelSmall?.copyWith(color: AppColors.mutedText),
+        Flexible(
+          child: Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: AppColors.mutedText),
+          ),
         ),
       ],
     ),

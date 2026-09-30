@@ -16,6 +16,15 @@ abstract final class AppTheme {
           error: AppColors.destructive,
           onSurface: AppColors.text,
           onPrimary: AppColors.text,
+          onSecondary: AppColors.text,
+          primaryContainer: AppColors.placeholder,
+          onPrimaryContainer: AppColors.text,
+          secondaryContainer: AppColors.placeholder,
+          onSecondaryContainer: AppColors.text,
+          onSurfaceVariant: AppColors.mutedText,
+          surfaceContainer: AppColors.card,
+          surfaceContainerHigh: AppColors.card,
+          surfaceTint: Colors.transparent,
           outline: AppColors.border,
         );
     final base = ThemeData(
@@ -24,6 +33,22 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
     );
     return base.copyWith(
+      iconTheme: const IconThemeData(color: AppColors.mutedText),
+      dividerTheme: const DividerThemeData(color: AppColors.border, space: 24),
+      listTileTheme: const ListTileThemeData(
+        iconColor: AppColors.accent,
+        textColor: AppColors.text,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      popupMenuTheme: const PopupMenuThemeData(
+        color: AppColors.card,
+        surfaceTintColor: Colors.transparent,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadii.medium)),
+          side: BorderSide(color: AppColors.border),
+        ),
+      ),
       textTheme: base.textTheme
           .apply(bodyColor: AppColors.text, displayColor: AppColors.text)
           .copyWith(
@@ -59,15 +84,19 @@ abstract final class AppTheme {
       ),
       cardTheme: const CardThemeData(
         color: AppColors.card,
-        elevation: 1.5,
+        elevation: 0,
         shadowColor: AppColors.border,
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadii.card)),
+          side: BorderSide(color: AppColors.border),
         ),
       ),
       inputDecorationTheme: const InputDecorationTheme(
+        labelStyle: TextStyle(color: AppColors.mutedText),
+        hintStyle: TextStyle(color: AppColors.mutedText),
+        floatingLabelStyle: TextStyle(color: AppColors.text),
         filled: true,
         fillColor: AppColors.card,
         contentPadding: EdgeInsets.symmetric(
@@ -103,6 +132,7 @@ abstract final class AppTheme {
         shape: StadiumBorder(),
       ),
       dialogTheme: const DialogThemeData(
+        constraints: BoxConstraints(maxWidth: 560),
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadii.large)),
@@ -136,10 +166,18 @@ abstract final class AppTheme {
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.text,
+          minimumSize: const Size(48, 48),
+          shape: const StadiumBorder(),
+        ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(shape: const StadiumBorder()),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.text,
+          minimumSize: const Size(48, 48),
+          shape: const StadiumBorder(),
+        ),
       ),
     );
   }

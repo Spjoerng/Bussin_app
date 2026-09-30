@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/page_content.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -207,154 +208,160 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 48),
-          children: [
-            Text('Photo', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.small),
-            _imageSection(),
-            const SizedBox(height: AppSpacing.xLarge),
-            Text(
-              'Basic information',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.medium),
-            TextFormField(
-              controller: _title,
-              autofocus: widget.recipe == null,
-              decoration: const InputDecoration(labelText: 'Title *'),
-              validator: (v) =>
-                  (v?.trim().isEmpty ?? true) ? 'A title is required.' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _description,
-              maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Description'),
-            ),
-            const SizedBox(height: 12),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 480;
-                final width = wide
-                    ? (constraints.maxWidth - AppSpacing.medium * 2) / 3
-                    : constraints.maxWidth;
-                return Wrap(
-                  spacing: AppSpacing.medium,
-                  runSpacing: AppSpacing.medium,
+      body: PageContent(
+        maxWidth: 840,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 48),
+            children: [
+              Text('Photo', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.small),
+              _imageSection(),
+              const SizedBox(height: AppSpacing.xLarge),
+              Text(
+                'Basic information',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.medium),
+              TextFormField(
+                controller: _title,
+                autofocus: widget.recipe == null,
+                decoration: const InputDecoration(labelText: 'Title *'),
+                validator: (v) =>
+                    (v?.trim().isEmpty ?? true) ? 'A title is required.' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _description,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 480;
+                  final width = wide
+                      ? (constraints.maxWidth - AppSpacing.medium * 2) / 3
+                      : constraints.maxWidth;
+                  return Wrap(
+                    spacing: AppSpacing.medium,
+                    runSpacing: AppSpacing.medium,
+                    children: [
+                      SizedBox(
+                        width: width,
+                        child: _numberField(_servings, 'Servings'),
+                      ),
+                      SizedBox(
+                        width: width,
+                        child: _numberField(_prep, 'Prep minutes'),
+                      ),
+                      SizedBox(
+                        width: width,
+                        child: _numberField(_cook, 'Cook minutes'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Recipe is complete'),
+                subtitle: Text(_finished ? 'Complete' : 'Draft'),
+                value: _finished,
+                onChanged: (v) => setState(() {
+                  _finished = v;
+                  _dirty = true;
+                }),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 18, bottom: 8),
+                child: Row(
                   children: [
-                    SizedBox(
-                      width: width,
-                      child: _numberField(_servings, 'Servings'),
+                    Expanded(
+                      child: Text(
+                        'Tags',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
-                    SizedBox(
-                      width: width,
-                      child: _numberField(_prep, 'Prep minutes'),
-                    ),
-                    SizedBox(
-                      width: width,
-                      child: _numberField(_cook, 'Cook minutes'),
+                    IconButton(
+                      tooltip: 'Select or create tag',
+                      onPressed: _selectTags,
+                      icon: const Icon(Icons.add_circle_outline),
                     ),
                   ],
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Recipe is complete'),
-              subtitle: Text(_finished ? 'Complete' : 'Draft'),
-              value: _finished,
-              onChanged: (v) => setState(() {
-                _finished = v;
-                _dirty = true;
-              }),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 18, bottom: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Tags',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Select or create tag',
-                    onPressed: _selectTags,
-                    icon: const Icon(Icons.add_circle_outline),
-                  ),
-                ],
+                ),
               ),
-            ),
-            if (_tagNames.isEmpty)
-              const Text('No tags assigned.')
-            else
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: _tagNames
-                    .map(
-                      (name) => InputChip(
-                        label: Text(name),
-                        onDeleted: () => setState(() {
-                          _tagNames.remove(name);
-                          _dirty = true;
-                        }),
-                      ),
-                    )
-                    .toList(),
+              if (_tagNames.isEmpty)
+                const Text('No tags assigned.')
+              else
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _tagNames
+                      .map(
+                        (name) => InputChip(
+                          label: Text(name),
+                          onDeleted: () => setState(() {
+                            _tagNames.remove(name);
+                            _dirty = true;
+                          }),
+                        ),
+                      )
+                      .toList(),
+                ),
+              _heading(
+                'Ingredients',
+                _ingredients.length,
+                () => setState(() {
+                  _ingredients.add(_IngredientFields());
+                  _dirty = true;
+                }),
               ),
-            _heading(
-              'Ingredients',
-              _ingredients.length,
-              () => setState(() {
-                _ingredients.add(_IngredientFields());
-                _dirty = true;
-              }),
-            ),
-            ReorderableListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _ingredients.length,
-              onReorderItem: (oldIndex, newIndex) => setState(() {
-                _ingredients.insert(newIndex, _ingredients.removeAt(oldIndex));
-                _dirty = true;
-              }),
-              itemBuilder: (_, index) => _ingredientRow(index),
-            ),
-            _heading(
-              'Instructions',
-              _instructions.length,
-              () => setState(() {
-                _instructions.add(_InstructionFields());
-                _dirty = true;
-              }),
-            ),
-            ReorderableListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _instructions.length,
-              onReorderItem: (oldIndex, newIndex) => setState(() {
-                _instructions.insert(
-                  newIndex,
-                  _instructions.removeAt(oldIndex),
-                );
-                _dirty = true;
-              }),
-              itemBuilder: (_, index) => _instructionRow(index),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _notes,
-              maxLines: 4,
-              decoration: const InputDecoration(labelText: 'Notes'),
-            ),
-          ],
+              ReorderableListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _ingredients.length,
+                onReorderItem: (oldIndex, newIndex) => setState(() {
+                  _ingredients.insert(
+                    newIndex,
+                    _ingredients.removeAt(oldIndex),
+                  );
+                  _dirty = true;
+                }),
+                itemBuilder: (_, index) => _ingredientRow(index),
+              ),
+              _heading(
+                'Instructions',
+                _instructions.length,
+                () => setState(() {
+                  _instructions.add(_InstructionFields());
+                  _dirty = true;
+                }),
+              ),
+              ReorderableListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _instructions.length,
+                onReorderItem: (oldIndex, newIndex) => setState(() {
+                  _instructions.insert(
+                    newIndex,
+                    _instructions.removeAt(oldIndex),
+                  );
+                  _dirty = true;
+                }),
+                itemBuilder: (_, index) => _instructionRow(index),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _notes,
+                maxLines: 4,
+                decoration: const InputDecoration(labelText: 'Notes'),
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -390,8 +397,10 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
           children: [
             TextButton.icon(
               onPressed: _chooseImageSource,
@@ -531,7 +540,9 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     padding: const EdgeInsets.only(top: AppSpacing.xLarge, bottom: 8),
     child: Row(
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        Expanded(
+          child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+        ),
         const SizedBox(width: AppSpacing.small),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -541,7 +552,6 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
           ),
           child: Text('$count', style: Theme.of(context).textTheme.labelMedium),
         ),
-        const Spacer(),
         TextButton.icon(
           onPressed: add,
           icon: const Icon(Icons.add, size: 20),

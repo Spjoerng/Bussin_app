@@ -138,6 +138,8 @@ void main() {
   testWidgets("narrow library shows Bussin' and readable two-row toolbar", (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     SharedPreferences.setMockInitialValues({});
     final database = AppDatabase.forTesting(NativeDatabase.memory());
     final repository = RecipeRepository(database);
@@ -169,14 +171,24 @@ void main() {
     expect(find.text("Bussin'"), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Search recipes'), findsOneWidget);
     expect(find.text('Pinned'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('All recipes'),
+      150,
+      scrollable: find.byType(Scrollable).last,
+    );
     expect(find.text('All recipes'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
+    controller.dispose();
+    await tester.pump(const Duration(milliseconds: 1));
+    await database.close();
   });
 
   testWidgets('editor remains overflow-free at 320px and 1.5 text scale', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     SharedPreferences.setMockInitialValues({});
     final database = AppDatabase.forTesting(NativeDatabase.memory());
     final controller = RecipeController(
@@ -204,5 +216,8 @@ void main() {
     expect(find.text('Photo'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
+    controller.dispose();
+    await tester.pump(const Duration(milliseconds: 1));
+    await database.close();
   });
 }

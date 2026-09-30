@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/page_content.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_spacing.dart';
@@ -36,115 +37,119 @@ class _BackupTransferView extends StatelessWidget {
     final controller = context.watch<BackupTransferController>();
     return Scaffold(
       appBar: AppBar(title: const Text('Backup and Transfer')),
-      body: Stack(
-        children: [
-          ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screen,
-              AppSpacing.small,
-              AppSpacing.screen,
-              40,
-            ),
-            children: [
-              const _Heading('Backup'),
-              _ActionTile(
-                icon: Icons.archive_outlined,
-                title: 'Export cookbook',
-                subtitle:
-                    'Create a portable backup with recipes, tags, and photos.',
-                onTap: () => _export(context, controller),
+      body: PageContent(
+        maxWidth: 840,
+        child: Stack(
+          children: [
+            ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.small,
+                AppSpacing.screen,
+                40,
               ),
-              if (selectedRecipeIds?.isNotEmpty ?? false)
+              children: [
+                const _Heading('Backup'),
                 _ActionTile(
-                  icon: Icons.checklist,
-                  title: 'Export selected recipes',
-                  subtitle: '${selectedRecipeIds!.length} selected',
-                  onTap: () => _export(context, controller, selectedRecipeIds),
+                  icon: Icons.archive_outlined,
+                  title: 'Export cookbook',
+                  subtitle:
+                      'Create a portable backup with recipes, tags, and photos.',
+                  onTap: () => _export(context, controller),
                 ),
-              _ActionTile(
-                icon: Icons.save_outlined,
-                title: 'Create local backup',
-                subtitle: 'Keep a manual backup inside the app.',
-                onTap: () => _localBackup(context, controller),
-              ),
-              const _Heading('Restore'),
-              _ActionTile(
-                icon: Icons.unarchive_outlined,
-                title: 'Import cookbook or recipe',
-                subtitle: 'Preview and validate before changing any data.',
-                onTap: () => _pickImport(context, controller),
-              ),
-              const _Heading('Local backups'),
-              if (controller.localBackups.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.small,
-                    AppSpacing.small,
-                    AppSpacing.small,
-                    AppSpacing.xLarge,
+                if (selectedRecipeIds?.isNotEmpty ?? false)
+                  _ActionTile(
+                    icon: Icons.checklist,
+                    title: 'Export selected recipes',
+                    subtitle: '${selectedRecipeIds!.length} selected',
+                    onTap: () =>
+                        _export(context, controller, selectedRecipeIds),
                   ),
-                  child: Text('No local backups yet.'),
+                _ActionTile(
+                  icon: Icons.save_outlined,
+                  title: 'Create local backup',
+                  subtitle: 'Keep a manual backup inside the app.',
+                  onTap: () => _localBackup(context, controller),
                 ),
-              ...controller.localBackups.map(
-                (backup) => ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.small,
-                    vertical: AppSpacing.small,
-                  ),
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: Text(backup.filename),
-                  subtitle: Text(
-                    '${backup.recipeCount} recipes • ${_size(backup.size)} • ${backup.createdAt.toLocal().toString().substring(0, 16)}',
-                  ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'restore') {
-                        _previewPath(context, controller, backup.path);
-                      }
-                      if (value == 'share') {
-                        controller.shareLocalBackup(backup.path);
-                      }
-                      if (value == 'delete') {
-                        controller.deleteLocalBackup(backup.path);
-                      }
-                    },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'restore', child: Text('Restore')),
-                      PopupMenuItem(value: 'share', child: Text('Share')),
-                      PopupMenuItem(value: 'delete', child: Text('Delete')),
-                    ],
-                  ),
+                const _Heading('Restore'),
+                _ActionTile(
+                  icon: Icons.unarchive_outlined,
+                  title: 'Import cookbook or recipe',
+                  subtitle: 'Preview and validate before changing any data.',
+                  onTap: () => _pickImport(context, controller),
                 ),
-              ),
-            ],
-          ),
-          if (controller.isBusy)
-            ColoredBox(
-              color: Colors.black26,
-              child: Center(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 12),
-                        Text(controller.progressLabel ?? 'Working…'),
-                        if (controller.canCancel) ...[
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: controller.requestCancel,
-                            child: const Text('Cancel'),
-                          ),
-                        ],
+                const _Heading('Local backups'),
+                if (controller.localBackups.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.small,
+                      AppSpacing.small,
+                      AppSpacing.small,
+                      AppSpacing.xLarge,
+                    ),
+                    child: Text('No local backups yet.'),
+                  ),
+                ...controller.localBackups.map(
+                  (backup) => ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.small,
+                      vertical: AppSpacing.small,
+                    ),
+                    leading: const Icon(Icons.inventory_2_outlined),
+                    title: Text(backup.filename),
+                    subtitle: Text(
+                      '${backup.recipeCount} recipes • ${_size(backup.size)} • ${backup.createdAt.toLocal().toString().substring(0, 16)}',
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'restore') {
+                          _previewPath(context, controller, backup.path);
+                        }
+                        if (value == 'share') {
+                          controller.shareLocalBackup(backup.path);
+                        }
+                        if (value == 'delete') {
+                          controller.deleteLocalBackup(backup.path);
+                        }
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(value: 'restore', child: Text('Restore')),
+                        PopupMenuItem(value: 'share', child: Text('Share')),
+                        PopupMenuItem(value: 'delete', child: Text('Delete')),
                       ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-        ],
+            if (controller.isBusy)
+              ColoredBox(
+                color: Colors.black26,
+                child: Center(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CircularProgressIndicator(),
+                          const SizedBox(height: 12),
+                          Text(controller.progressLabel ?? 'Working…'),
+                          if (controller.canCancel) ...[
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: controller.requestCancel,
+                              child: const Text('Cancel'),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

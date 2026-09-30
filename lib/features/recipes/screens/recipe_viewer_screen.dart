@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/page_content.dart';
 import '../../../data/repositories/recipe_repository.dart';
 import '../controllers/recipe_controller.dart';
 import '../widgets/recipe_image.dart';
+import '../widgets/favorite_button.dart';
 import 'recipe_editor_screen.dart';
 
 class RecipeViewerScreen extends StatefulWidget {
@@ -15,14 +17,66 @@ class RecipeViewerScreen extends StatefulWidget {
 
 class _RecipeViewerScreenState extends State<RecipeViewerScreen> {
   late Future<CompleteRecipe?> _future;
+  bool? _favorite;
+  bool? _pinned;
+  bool _updatingFavorite = false;
+  bool _updatingPin = false;
   @override
   void initState() {
     super.initState();
     _reload();
   }
 
-  void _reload() =>
-      _future = context.read<RecipeController>().loadRecipe(widget.recipeId);
+  void _reload() {
+    _favorite = null;
+    _pinned = null;
+    _future = context.read<RecipeController>().loadRecipe(widget.recipeId);
+  }
+
+  Future<void> _toggle(CompleteRecipe value, {required bool favorite}) async {
+    final controller = context.read<RecipeController>();
+    final previous = favorite
+        ? (_favorite ?? value.recipe.isFavorite)
+        : (_pinned ?? value.recipe.isPinned);
+    setState(() {
+      if (favorite) {
+        _favorite = !previous;
+        _updatingFavorite = true;
+      } else {
+        _pinned = !previous;
+        _updatingPin = true;
+      }
+    });
+    try {
+      if (favorite) {
+        await controller.toggleFavorite(widget.recipeId);
+      } else {
+        await controller.togglePinned(widget.recipeId);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        if (favorite) {
+          _favorite = previous;
+        } else {
+          _pinned = previous;
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not save the change. Try again.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (favorite) {
+            _updatingFavorite = false;
+          } else {
+            _updatingPin = false;
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) => FutureBuilder<CompleteRecipe?>(
@@ -32,10 +86,16 @@ class _RecipeViewerScreenState extends State<RecipeViewerScreen> {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
       final value = snapshot.data;
-      if (value == null) {
+      if (snapshot.hasError || value == null) {
         return Scaffold(
           appBar: AppBar(),
-          body: const Center(child: Text('Recipe not found.')),
+          body: Center(
+            child: Text(
+              snapshot.hasError
+                  ? 'Could not load this recipe. Please try again.'
+                  : 'Recipe not found.',
+            ),
+          ),
         );
       }
       final recipe = value.recipe;
@@ -43,27 +103,23 @@ class _RecipeViewerScreenState extends State<RecipeViewerScreen> {
         appBar: AppBar(
           title: const Text('Recipe'),
           actions: [
-            IconButton(
-              tooltip: 'Favorite',
-              onPressed: () async {
-                await context.read<RecipeController>().toggleFavorite(
-                  recipe.id,
-                );
-                if (mounted) setState(_reload);
-              },
-              icon: Icon(
-                recipe.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: recipe.isFavorite ? AppColors.destructive : null,
-              ),
+            FavoriteButton(
+              isFavorite: _favorite ?? recipe.isFavorite,
+              onPressed: _updatingFavorite
+                  ? null
+                  : () => _toggle(value, favorite: true),
             ),
             IconButton(
-              tooltip: 'Pin',
-              onPressed: () async {
-                await context.read<RecipeController>().togglePinned(recipe.id);
-                if (mounted) setState(_reload);
-              },
+              tooltip: (_pinned ?? recipe.isPinned)
+                  ? 'Unpin recipe'
+                  : 'Pin recipe',
+              onPressed: _updatingPin
+                  ? null
+                  : () => _toggle(value, favorite: false),
               icon: Icon(
-                recipe.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                (_pinned ?? recipe.isPinned)
+                    ? Icons.push_pin
+                    : Icons.push_pin_outlined,
               ),
             ),
             IconButton(
@@ -72,7 +128,17 @@ class _RecipeViewerScreenState extends State<RecipeViewerScreen> {
                 final changed = await Navigator.push<bool>(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => RecipeEditorScreen(recipe: value),
+                    builder: (_) => RecipeEditorScreen(
+                      recipe: CompleteRecipe(
+                        recipe.copyWith(
+                          isFavorite: _favorite,
+                          isPinned: _pinned,
+                        ),
+                        value.ingredients,
+                        value.instructions,
+                        value.tags,
+                      ),
+                    ),
                   ),
                 );
                 if ((changed ?? false) && mounted) setState(_reload);
@@ -107,8 +173,7 @@ class _RecipeViewerScreenState extends State<RecipeViewerScreen> {
             ),
           ],
         ),
-        body: Material(
-          color: Colors.transparent,
+        body: PageContent(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 48),
             children: [
@@ -291,8 +356,10 @@ class _Chip extends StatelessWidget {
   final String label;
   final IconData icon;
   @override
-  Widget build(BuildContext context) =>
-      Chip(avatar: Icon(icon, size: 18), label: Text(label));
+  Widget build(BuildContext context) => Chip(
+    avatar: Icon(icon, size: 18, color: AppColors.accent),
+    label: Text(label),
+  );
 }
 
 class _Heading extends StatelessWidget {

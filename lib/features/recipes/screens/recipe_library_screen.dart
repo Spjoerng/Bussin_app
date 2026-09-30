@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../core/theme/page_content.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 
@@ -95,91 +96,94 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.screen,
-              AppSpacing.xSmall,
-              AppSpacing.screen,
-              AppSpacing.small,
-            ),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _search,
-                  onChanged: controller.setSearchQuery,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    hintText: 'Search recipes',
-                    suffixIcon: controller.searchQuery.isEmpty
-                        ? null
-                        : IconButton(
-                            onPressed: () {
-                              _search.clear();
-                              controller.clearSearch();
-                            },
-                            icon: const Icon(Icons.close),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.small),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Badge(
-                      isLabelVisible: controller.activeFilterCount > 0,
-                      label: Text('${controller.activeFilterCount}'),
-                      child: IconButton.filledTonal(
-                        tooltip: 'Filter',
-                        onPressed: () => _showFilters(context, controller),
-                        icon: const Icon(Icons.tune),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xSmall),
-                    PopupMenuButton<RecipeSortOption>(
-                      tooltip: 'Sort',
-                      initialValue: controller.sortOption,
-                      onSelected: controller.setSortOption,
-                      icon: const Icon(Icons.sort),
-                      itemBuilder: (_) => RecipeSortOption.values
-                          .map(
-                            (value) => PopupMenuItem(
-                              value: value,
-                              child: Text(_sortLabel(value)),
+      body: PageContent(
+        maxWidth: 1200,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screen,
+                AppSpacing.xSmall,
+                AppSpacing.screen,
+                AppSpacing.small,
+              ),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _search,
+                    onChanged: controller.setSearchQuery,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'Search recipes',
+                      suffixIcon: controller.searchQuery.isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: () {
+                                _search.clear();
+                                controller.clearSearch();
+                              },
+                              icon: const Icon(Icons.close),
                             ),
-                          )
-                          .toList(),
                     ),
-                    const SizedBox(width: AppSpacing.xSmall),
-                    IconButton.filledTonal(
-                      tooltip: controller.isGrid
-                          ? 'Use list layout'
-                          : 'Use grid layout',
-                      onPressed: controller.toggleLayout,
-                      icon: Icon(
-                        controller.isGrid
-                            ? Icons.grid_on_outlined
-                            : Icons.view_list_outlined,
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Badge(
+                        isLabelVisible: controller.activeFilterCount > 0,
+                        label: Text('${controller.activeFilterCount}'),
+                        child: IconButton.filledTonal(
+                          tooltip: 'Filter',
+                          onPressed: () => _showFilters(context, controller),
+                          icon: const Icon(Icons.tune),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: AppSpacing.xSmall),
+                      PopupMenuButton<RecipeSortOption>(
+                        tooltip: 'Sort',
+                        initialValue: controller.sortOption,
+                        onSelected: controller.setSortOption,
+                        icon: const Icon(Icons.sort),
+                        itemBuilder: (_) => RecipeSortOption.values
+                            .map(
+                              (value) => PopupMenuItem(
+                                value: value,
+                                child: Text(_sortLabel(value)),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      const SizedBox(width: AppSpacing.xSmall),
+                      IconButton.filledTonal(
+                        tooltip: controller.isGrid
+                            ? 'Use list layout'
+                            : 'Use grid layout',
+                        onPressed: controller.toggleLayout,
+                        icon: Icon(
+                          controller.isGrid
+                              ? Icons.grid_on_outlined
+                              : Icons.view_list_outlined,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          if (controller.filterState.isActive)
-            _ActiveFilters(controller: controller),
-          Expanded(
-            child: _LibraryBody(
-              controller: controller,
-              clearSearch: () {
-                _search.clear();
-                controller.clearSearch();
-              },
+            if (controller.filterState.isActive)
+              _ActiveFilters(controller: controller),
+            Expanded(
+              child: _LibraryBody(
+                controller: controller,
+                clearSearch: () {
+                  _search.clear();
+                  controller.clearSearch();
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push(
@@ -243,33 +247,39 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
             0,
           ),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 280, maxHeight: 420),
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.small,
+            constraints: BoxConstraints(
+              minWidth: 0,
+              maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+            ),
+            child: SizedBox(
+              width: 480,
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.small,
+                ),
+                itemCount: controller.recipes.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (_, index) {
+                  final item = controller.recipes[index];
+                  return CheckboxListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.small,
+                      vertical: AppSpacing.xSmall,
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: selected.contains(item.recipe.id),
+                    title: Text(item.recipe.title),
+                    onChanged: (value) => setDialogState(() {
+                      if (value ?? false) {
+                        selected.add(item.recipe.id);
+                      } else {
+                        selected.remove(item.recipe.id);
+                      }
+                    }),
+                  );
+                },
               ),
-              itemCount: controller.recipes.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (_, index) {
-                final item = controller.recipes[index];
-                return CheckboxListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.small,
-                    vertical: AppSpacing.xSmall,
-                  ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  value: selected.contains(item.recipe.id),
-                  title: Text(item.recipe.title),
-                  onChanged: (value) => setDialogState(() {
-                    if (value ?? false) {
-                      selected.add(item.recipe.id);
-                    } else {
-                      selected.remove(item.recipe.id);
-                    }
-                  }),
-                );
-              },
             ),
           ),
           actionsPadding: const EdgeInsets.fromLTRB(
@@ -311,7 +321,7 @@ class _ActiveFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     final f = controller.filterState;
     return SizedBox(
-      height: 44,
+      height: 40 + MediaQuery.textScalerOf(context).scale(20),
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -475,7 +485,12 @@ class _RecipeCollection extends StatelessWidget {
     return LayoutBuilder(
       builder: (_, constraints) {
         final columns =
-            ((constraints.maxWidth + AppSpacing.grid) / (150 + AppSpacing.grid))
+            ((constraints.maxWidth + AppSpacing.grid) /
+                    (180 *
+                            MediaQuery.textScalerOf(
+                              context,
+                            ).scale(1).clamp(1, 1.5) +
+                        AppSpacing.grid))
                 .floor()
                 .clamp(1, 4);
         return MasonryGridView.count(
